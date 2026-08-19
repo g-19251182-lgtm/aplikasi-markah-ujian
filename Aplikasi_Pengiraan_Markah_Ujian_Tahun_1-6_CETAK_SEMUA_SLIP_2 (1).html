@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aplikasi Pengiraan Markah Ujian Tahun 1–6</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f6fb;color:#172033}
+header{background:linear-gradient(135deg,#173b72,#2878c8);color:#fff;padding:22px}
+header h1{margin:0 0 6px;font-size:25px}header p{margin:0;opacity:.9}
+.container{max-width:1500px;margin:20px auto;padding:0 15px}
+.card{background:#fff;border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,.07)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+label{font-weight:bold;font-size:13px;display:block;margin-bottom:5px}
+input,select,button{width:100%;padding:10px;border:1px solid #ccd5e2;border-radius:8px;font-size:14px}
+button{border:0;background:#1769aa;color:#fff;font-weight:bold;cursor:pointer}button:hover{opacity:.9}
+.btn-danger{background:#d64545}.btn-green{background:#218838}.btn-gray{background:#667085}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.actions button{width:auto;padding:10px 14px}
+.table-wrap{overflow:auto;max-height:70vh}table{width:100%;border-collapse:collapse;min-width:1900px}
+th,td{border:1px solid #dbe2ea;padding:7px;text-align:center;white-space:nowrap}
+th{background:#eaf2fb;position:sticky;top:0;z-index:3}td.name,th.name{text-align:left;position:sticky;left:0;z-index:2;background:#fff;min-width:310px}
+th.name{background:#eaf2fb;z-index:4}.mark{width:72px;text-align:center;padding:7px}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{background:#eef6ff;border-radius:10px;padding:13px;text-align:center}.stat b{display:block;font-size:23px;color:#1769aa}
+.grade-A{color:#14833b;font-weight:bold}.grade-B{color:#2878c8;font-weight:bold}.grade-C{color:#b27b00;font-weight:bold}.grade-D,.grade-E,.grade-F{color:#c0392b;font-weight:bold}
+.small{font-size:12px;color:#667085}.notice{background:#fff7df;border-left:5px solid #e0a400;padding:10px;border-radius:7px;margin-top:10px}
+@media print{button,.actions{display:none!important}body{background:#fff}.card{box-shadow:none}.table-wrap{max-height:none;overflow:visible}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<header>
+<h1>📊 Aplikasi Pengiraan Markah Ujian Tahun 1–6</h1><div id="yearBadge" style="font-weight:bold;color:#1769aa;margin:4px 0 10px">Tahun Akademik 2026</div>
+<div style="margin-top:14px;padding:14px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc">
+  <div style="font-weight:800;font-size:16px;margin-bottom:8px">📥 Import Senarai Murid</div>
+  <div style="font-size:13px;color:#475569;margin-bottom:10px">
+    Pilih fail <b>Excel (.xlsx/.xls)</b> atau <b>CSV (.csv)</b>. Sistem akan membaca nama murid dan, jika ada, kelas.
+  </div>
+  <input id="studentImportFile" type="file" accept=".xlsx,.xls,.csv" style="max-width:100%;margin-bottom:8px">
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button type="button" onclick="importStudentList()" style="padding:8px 12px;border:0;border-radius:7px;background:#0f766e;color:white;font-weight:700;cursor:pointer">Import Senarai</button>
+    <button type="button" onclick="downloadImportTemplate()" style="padding:8px 12px;border:1px solid #94a3b8;border-radius:7px;background:white;font-weight:700;cursor:pointer">Muat Turun Templat CSV</button>
+  </div>
+  <div id="importStatus" style="margin-top:8px;font-size:13px"></div>
+</div>
+
+<p>1 kelas pada satu-satu masa • Data murid SK Unico Desa telah dimasukkan</p>
+</header>
+
+<div class="container">
+<div class="card">
+<div class="grid">
+<div><label>Pilih Kelas</label><label style="display:flex;align-items:center;gap:6px">Tahun Akademik
+<select id="academicYear" onchange="changeAcademicYear()" style="padding:8px">
+<option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option><option value="2030">2030</option><option value="2031">2031</option><option value="2032">2032</option><option value="2033">2033</option><option value="2034">2034</option><option value="2035">2035</option>
+</select></label><select id="className" onchange="loadClass()"></select></div>
+
+
+<div><label>Nama Ujian</label><input id="testName" placeholder="Contoh: Ujian 1"></div>
+<div><label>Markah Penuh</label><input id="maxMark" type="number" min="1" value="100"></div>
+</div>
+<div class="notice">Senarai murid dimuatkan terus daripada fail yang diberikan. Pilih satu kelas untuk memasukkan markah. <b id="loadedInfo"></b></div>
+</div>
+
+<div class="card">
+<div class="summary">
+<div class="stat">Bil. Murid<b id="count">0</b></div>
+<div class="stat">Purata Markah<b id="avg">0</b></div>
+<div class="stat">Purata %<b id="avgPct">0%</b></div>
+<div class="stat">Lulus<b id="pass">0</b></div>
+<div class="stat">Gagal<b id="fail">0</b></div>
+</div>
+</div>
+
+<div class="card">
+<div class="actions" style="margin-bottom:12px">
+<button onclick="sortName()">↕ Susun Nama</button>
+<button class="btn-green" onclick="exportCSV()">⬇ Export CSV</button>
+<button class="btn-gray" onclick="window.print()">🖨 Cetak</button>
+<button class="btn-green" type="button" onclick="printAllSlips()">🖨 Cetak Semua Slip</button>
+<button class="btn-green" type="button" onclick="saveDataManual()">💾 Simpan Data</button>
+<button class="btn-danger" onclick="clearMarks()">Kosongkan Markah Kelas</button><button type="button" onclick="resetYearData()" style="background:#8b1e1e;color:white">Padam Data Tahun Ini</button>
+</div>
+<div class="table-wrap">
+<table>
+<thead id="thead"></thead>
+<tbody id="tbody"></tbody>
+</table>
+</div>
+<p class="small">Nama murid di sebelah kiri. Markah bagi 12 mata pelajaran berada di sebelah kanan. Markah disimpan secara automatik dalam pelayar ini.</p>
+</div>
+</div>
+
+<script>
+// ================== PANGKALAN DATA ONLINE ==================
+// Sambungan Google Apps Script sekolah.
+// Data tempatan (localStorage) dikekalkan sebagai sandaran.
+const CLOUD_API_URL = 'https://script.google.com/macros/s/AKfycby5k3qJZfmJGhaE5FTKI78JKOFmUMfBxSY8JxKzu3XqUCXtw4CzQKntGth9rVrN1bHOeQ/exec';
+let cloudReady = false;
+
+function cloudEnabled(){
+  return !!CLOUD_API_URL && CLOUD_API_URL.indexOf('https://script.google.com/') === 0;
+}
+
+async function cloudSaveData(showAlert=true){
+  if(!cloudEnabled()){
+    if(showAlert) alert('Sambungan pangkalan data pusat belum tersedia.');
+    return false;
+  }
+
+  const testName=document.getElementById('testName')?.value || 'Ujian';
+  const payload={
+    action:'save',
+    year:academicYear,
+    className:activeClass,
+    testName:testName,
+    maxMark:Number(document.getElementById('maxMark')?.value)||100,
+    students:students.map(s=>({
+      name:String(s.name||'').trim(),
+      ic:getStudentIC(s.name),
+      marks:Array.isArray(s.marks)?s.marks.slice():Array(subjects.length).fill('')
+    }))
+  };
+
+  try{
+    const r=await fetch(CLOUD_API_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(payload)
+    });
+    const result=await r.json();
+
+    if(result && result.success){
+      cloudReady=true;
+      if(showAlert) alert('Data berjaya disimpan ke pangkalan data pusat.');
+      return true;
+    }
+
+    console.error('Cloud save response:',result);
+  }catch(e){
+    console.error('Cloud save error:',e);
+  }
+
+  if(showAlert) alert('Data tidak berjaya disimpan ke pangkalan data pusat. Data tempatan masih dikekalkan.');
+  return false;
+}
+
+async function cloudLoadData(showAlert=false){
+  if(!cloudEnabled()) return false;
+
+  const testName=document.getElementById('testName')?.value || 'Ujian';
+  const url=CLOUD_API_URL
+    + '?action=load'
+    + '&year='+encodeURIComponent(academicYear)
+    + '&className='+encodeURIComponent(activeClass)
+    + '&testName='+encodeURIComponent(testName);
+
+  try{
+    const r=await fetch(url,{method:'GET'});
+    const result=await r.json();
+
+    if(result && result.success && Array.isArray(result.students) && result.students.length){
+      students=result.students.map(s=>({
+        name:String(s.name||'').trim(),
+        marks:Array.isArray(s.marks)
+          ? s.marks.slice(0,subjects.length).concat(
+              Array(Math.max(0,subjects.length-(Array.isArray(s.marks)?s.marks.length:0))).fill('')
+            )
+          : Array(subjects.length).fill('')
+      }));
+
+      while(students.length<MAX_STUDENTS){
+        students.push({name:'',marks:Array(subjects.length).fill('')});
+      }
+      if(students.length>MAX_STUDENTS) students=students.slice(0,MAX_STUDENTS);
+
+      // Kekalkan data awan juga sebagai cache tempatan.
+      saveMarks();
+      render();
+      refreshRankings();
+      cloudReady=true;
+
+      if(showAlert) alert('Data pusat berjaya dimuatkan.');
+      return true;
+    }
+
+    cloudReady=true;
+    return false;
+  }catch(e){
+    console.error('Cloud load error:',e);
+    return false;
+  }
+}
+
+const classData={"1 AMANAH": ["AFEEF GEZA BIN HABIBI", "AHNAF MIKAIL BIN ABDUL MALIK", "AINATUL NURUL NADIRAH BINTI ABDULLAH", "AIRIS SOFIA BINTI AHMAD TERMIDZI", "ARIF IMAN BIN JAIDI", "DATU AZRI SAFWAN BIN DATU AZRIN", "HAWA HEIYLEESYA MIQAYLA BINTI ABDULLAH", "IMRAN KAHN BIN BAKHT AKBAR", "MUHAMAD FARIS SYAMSUL BIN ABDULLAH", "MUHAMAD HAFIS BIN SALIH", "MUHAMMAD HADIF MARZUQI BIN MOHD HAZAQA", "MUHAMMAD HFIY BIN AL AMIN", "NOOR AAFIYAH BINTI MOHD NOR AZMIN", "NUR AISYAH IZZARAH BINTI ISMAIL", "NUR ALEEYA PUTRI BINTI MIJI", "NUR IZZARA FARISHA BINTI MUHAMAD FARID", "NUR ZAFIRAH FARHANA BINTI NAZERI", "NURIN FARAHANA BINTI MUHAMADIN", "SITI ADRIANA NAFEESA BINTI MOHD ALIP HAIKAL", "AFFAN BIN HANIF", "MOHAMMAD AIZAT MIKAIL BIN ABDULLAH", "MUHAMMAD FIRDAUS BIN ABDULLAH"], "2 AMANAH": ["AFFEEF DANIYAL TALHA BIN ABDULLAH", "NOAH", "AMMAR QARIZH BIN ABDUL SYAHRUM", "ANIQ AMSYAR BIN LATIP", "ARIAYANA SAFIYYA BINTI MOHD HAIQAL", "ARJUNA RIZQI BIN FARHAN", "ARJUNA ZIQRI BIN FARHAN", "DAYANG ARUMI BINTI SAHRIN", "DHAFWATUL AISY RAYYAN BIN SAHAR", "DHIA ANGGUN MALAIKA BINTI MOHAMAD LAN", "FAREEL MIKAEL BIN FADZLEE", "JURAIZAL BIN ABDULLAH", "MOHAMAD NOOR SYAHADAN BIN MOHD IRWAN", "MOHAMAD ZAYYAN SYAHIEZAN BIN MOHD HAFIZAN", "MOHAMMAD ADAM HARIS BIN MOHAMMAD RAFI", "MOHAMMAD AZAM HAZIQ BIN LAHUNDU", "MOHAMMAD SUFIAN BIN JUL", "MUHAMMAD HULMDI BIN ABDULLAH", "MUHAMMAD IZZAN BIN AHZMIN", "MUHAMMAD JAADZIB RIZQI BIN JURAIMAN", "MUHAMMAD NUR AZIZIE BIN DAPID", "MUHAMMAD RAYYAN HAFFAZ BIN HASARUDDIN", "MUHAMMAD TAUFIQ BIN PANDEKAR MUKMIN", "NUR ANNASYA RAUDAH BINTI MOHD DAHRI", "NUR UMAIRAH BINTI ABDULLAH", "NURAIN BATRISYA BINTI YAHAYA", "NURAINUL MARDHIAH BINTI NURHAMZAL", "NURUL FATIHAH MUNAWARAH BINTI RAHIM", "SITI ADRIANA AAFIYAH BINTI MOHD ALIP HAIKAL"], "3 AMANAH": ["AINUL MARDIAH BINTI ALYAMANI", "AMSYAR UQAIL BIN SYAIRAL IZMAL", "AN NUR HAMIZAH BINTI JEFRI", "AYRA MYSA BINTI JAIDI", "ELFIRA DELISHA NURSHARIEYZAH BINTI SHARIL", "FATIMAH AZZAHRA BINTI SABAHTRI", "LANA HAYDEN ANAK HANDSON CLIFF", "MOHAMMAD NOR HAFIZI BIN AMIR KAHAL", "MOHAMMAD NORFARIS BIN MOHD RAZALI", "MOHAMMAD TALHAH UBAIDILLAH BIN MOHAMMAD RAFI", "MUHAMAD NOOR UZAIR BIN MOHD KHAIRI", "MUHAMMAD BIN MAHFUZ", "MUHAMMAD EZZ ESYRAF BIN MOHD EZKIL", "MUHAMMAD KAZIM FAUZAN BIN BAKTIAR", "MUHAMMAD NORIFFAT RAYKAL BIN SAHRIZAL", "MUHAMMAD RAYYAN SYARIZZAN BIN ARIS", "MUHAMMAD YUSUF BIN ISMAIL", "MUHAMMAD ZAHWAN BIN LAJARUDI", "NOOR ZALIKHA BINTI MOHD NOR AZMIN", "NOR AMIRAH BINTI BENADJAR", "NUR AINUL MARDHIAH BINTI AIRUL", "NUR ALEESA ADAWIYAH BINTI ESMAR", "NUR AMNA RAISHA BINTI HAMZAH", "NUR HUSNINA BINTI ABDULLAH", "NUR NADEERA SAFIYYAH BINTI ZULKEFLI", "NUR ZAHRA IRDINA BINTI OMAR @ MARSS", "NURFATHIAH AZZAHRA BINTI MOHD ARSAD", "SHARIFAH QALESYA AFIFAH BINTI ABDULLAH", "SITI NUR AYRA ZHAFIRA BINTI MUHAMMAD IDRIS", "SITI ZULAIKHAH BINTI ABDUL SALLEM", "YUSUF QARIZH BIN ABDUL SYAHRUM"], "4 AMANAH": ["AFIFAH BINTI MOHD HASIM", "AHMAD SUFI BIN PANDEKAR MUKMIN", "AINUR MAHFUZA BINTI ABDULLAH", "AQIEF MUZZAFFAR BIN ABDUL MALIK", "CHELSEA LETICIA DAGOL", "DHIA LOFA AZHARA BINTI MOHAMAD LAN", "JUNAIZAL WILDAN BIN ABDULLAH", "JUWAIRIYYAH SOFIYYAH BINTI MAHFUZ", "MUHAMAD KHAIRIL HELMI BIN KAMIL", "MUHAMMAD AIRIEL SYAZWAN BIN MOHD FAIZAL", "MUHAMMAD ATTIRMIZI BIN PANDEKAR MUKMIN", "MUHAMMAD MAHDI BIN RASIDI", "MUHAMMAD NUR AZRIEN BIN DAPID", "MUHAMMAD SALI ASRAF BIN SALIH", "NUR FARHANIM FAIQA BINTI FARHAN", "NUR FAZURA ERRINA BINTI MOHD ARSANI", "NUR INSYIRAH AWFIYAH BINTI ZULKEFLI", "NUR RADZWA NADIRAH BINTI RADZAILY", "NUR SARAH MUNIRAH BINTI NAZERI", "NURAINA QARMILAH BINTI NURHAMZAL", "NURUL AMIRAH NATASYA BINTI MOHD SUHAILI", "NURUL ATIRAH AZLYN BINTI MOHD AZMI", "SITI NOR BAHYAH BINTI TABING", "TRYSTAN YVANDER LET ANAK JUSTIN"], "5 AMANAH": ["ADAM AQIB BIN ABDULLAH", "AHMAD DZAKIR BIN ALYAMANI", "AISYAH DIYANAH BINTI AZUMAT", "AJWA BINTI MUHAMMAD WARIS", "AMMAR UWAIS BIN SYAIRAL IZMAL", "CRISSELLA HOLY JOELSON", "MOHAMMAD AZMIE BIN ABDULLAH", "MUHAMAD NOOR HAZIM BIN MOHD KHAIRI", "MUHAMMAD AFI AMZAR BIN BAKTIAR", "MUHAMMAD FARHANSYAH BIN MUHAMADIN", "MUHAMMAD RAYYAN DANISH BIN MOHD ARYAN SHAH G RAFAEL ABDULLAH", "MUHAMMAD SAIDINA ALI BIN HARUN", "NUR AISYAH FIKRIYAH BINTI AIRUL", "NUR AISYAH HUMAIRA BINTI ESMAR", "NUR AISYAH SYAFIYAH BINTI MOHD SAMSAUDIN", "NUR HUMAIRA VARISHA BINTI HUSSEIN", "NUR SAIDATUL SAADAH BINTI MOHD IRWAN", "NURDIANA AISYAH BINTI ABDULLAH", "NURSAJWA QADRIYYAH BINTI LAJARUDI", "NURUL AZRIEANIE BINTI DAPID", "NURUL RANIA BINTI ABDULLAH", "PUTRI DEEANA ALEESYA BINTI NORMAN", "RIZWANA NAJWA BINTI MOHAMMAD RIZAL"], "6  AMANAH": ["ATHILAH FARZANA BINTI AHMAD ARDI", "DANIAL HAZIQ BIN AZUMAT", "DAYANG NOOR FAEZA BINTI DATU AZRIN", "MOHAMMAD KHAIRIL MIZAN BIN M HAMIZAN", "MOHAMMAD NOR HADI BIN AMIR KAHAL", "MOHAMMAD PUTRA FARIEZWAN BIN SHARIL", "MOHAMMAD RADZWIN BIN RADZAILY", "MUHAMMAD AQIEF RAYYAN BIN MOHD DAHRI", "MUHAMMAD DAFFA HUZZARI BIN SABRAN", "MUHAMMAD KHAIRY BIN AHZMIN", "MUQRIE AMMAR ZAHWAN BIN ANUAR", "MUSTHOFA BIN MAHFUZ", "NOOR HAFIZAH BINTI ABDUL HASSAN", "NUR AINUL MARDHIAH BINTI ABDUL SYAHRUM", "NUR AQILAH NADIRAH BINTI NAZERI", "NURAIN QAMARIAH BINTI NURHAMZAL", "NURALISYAH BINTI ABDUL SANI", "SITI ADRIANA ZULAIKAH BINTI ABDULLAH", "SITI NASYRAH BINTI MOHD LAIMAN", "SITI NURDAANIYSAH FAIQAH BINTI MUHAMMAD IDRIS", "TENGKU NORARYAN NAUFAL BIN TENGKU NORAZLAN"]};
+
+const studentICMap = {"afeef geza bin habibi": "191206120097", "affan bin hanif": "190616101935", "ahnaf mikail bin abdul malik": "190716120869", "ainatul nurul nadirah binti abdullah": "190917121470", "airis sofia binti ahmad termidzi": "190522121046", "arif iman bin jaidi": "190612120055", "datu azri safwan bin datu azrin": "190225120581", "hawa heiyleesya miqayla binti abdullah": "191101120752", "imran kahn bin bakht akbar": "190803121085", "mohammad aizat mikail bin abdullah": "190715121819", "muhamad faris syamsul bin abdullah": "190317120773", "muhamad hafis bin salih": "190220120937", "muhammad hadif marzuqi bin mohd hazaqa": "190910120109", "muhammad hfiy bin al amin": "190917121585", "nadhif rayyan bin abdullah": "190804121095", "noor aafiyah binti mohd nor azmin": "190621120620", "nur aisyah izzarah binti ismail": "190131120126", "nur aleeya putri binti miji": "190619120840", "nur izzara farisha binti muhamad farid": "190617120492", "nur zafirah farhana binti nazeri": "190701120102", "nurin farahana binti muhamadin": "190304121160", "siti adriana nafeesa binti mohd alip haikal": "190506120502", "affeef daniyal talha bin abdullah": "181124120705", "ammar qarizh bin abdul syahrum": "180305120929", "aniq amsyar bin latip": "181009120339", "arjuna rizqi bin farhan": "181107120519", "arjuna ziqri bin farhan": "181107120527", "dayang arumi binti sahrin": "180116120452", "dhafwatul aisy rayyan bin sahar": "181109120563", "dhia anggun malaika binti mohamad lan": "180620120750", "fareel mikael bin fadzlee": "181223120321", "juraizal bin abdullah": "180204120639", "mohamad noor syahadan bin mohd irwan": "180417120843", "mohamad zayyan syahiezan bin mohd hafizan": "180308120983", "mohammad adam haris bin mohammad rafi": "181227120265", "mohammad azam haziq bin lahundu": "180224120177", "mohammad sufian bin jul": "180501120731", "muhammad hulmdi bin abdullah": "180519121337", "muhammad izzan bin ahzmin": "180427121145", "muhammad jaadzib rizqi bin juraiman": "180616120483", "muhammad nur azizie bin dapid": "180122120125", "muhammad rayyan haffaz bin hasaruddin": "180808120031", "muhammad taufiq bin pandekar mukmin": "180908120637", "noah baihaqi bin mardinih": "180423140349", "nur annasya raudah binti mohd dahri": "180401120232", "nur umairah binti belna din": "180204120102", "nurain batrisya binti yahaya": "180127120300", "nurainul mardhiah binti nurhamzal": "181208120200", "nurul fatihah munawarah binti rahim": "180630120180", "siti adriana aafiyah binti mohd alip haikal": "180326120418", "ainul mardiah binti alyamani": "170808121158", "amsyar uqail bin syairal izmal": "170908120697", "an nur hamizah binti jefri": "170321120516", "ayra mysa binti jaidi": "170421120118", "elfira delisha nursharieyzah binti sharil": "171107120894", "fatimah azzahra binti sabahtri": "170525120788", "lana hayden anak handson cliff": "170810120568", "mohammad nor hafizi bin amir kahal": "170804120801", "mohammad norfaris bin mohd razali": "170419120653", "mohammad talhah ubaidillah bin mohammad rafi": "170517120083", "muhamad noor uzair bin mohd khairi": "170713120769", "muhammad bin mahfuz": "170330121027", "muhammad ezz esyraf bin mohd ezkil": "170630030549", "muhammad kazim fauzan bin baktiar": "170410120593", "muhammad rayyan syarizzan bin aris": "170521120043", "muhammad yusuf bin ismail": "170408120375", "muhammad zahwan bin lajarudi": "170522121363", "noor zalikha binti mohd nor azmin": "170919120668", "nor amirah binti benadjar": "171013120148", "nur ainul mardhiah binti airul": "170219120042", "nur aleesa adawiyah binti esmar": "170209120014", "nur amna raisha binti hamzah": "170401130714", "nur husnina binti abdullah": "101060XAH", "nur nadeera safiyyah binti zulkefli": "171018120104", "nur zahra irdina binti omar @ marss": "170607120394", "nurfathiah azzahra binti mohd arsad": "170819120222", "sharifah qalesya afifah binti abdullah": "170805120504", "siti nur ayra zhafira binti muhammad idris": "170127120280", "siti zulaikhah binti abdul sallem": "171208120156", "yusuf qarizh bin abdul syahrum": "170209120161", "afifah binti mohd hasim": "161122120316", "ahmad sufi bin pandekar mukmin": "161211120393", "ainur mahfuza binti abdullah": "161002120944", "aqief muzzaffar bin abdul malik": "160713120655", "chelsea leticia dagol": "160330120324", "dhia lofa azhara binti mohamad lan": "161212120766", "junaizal wildan bin abdullah": "160812120503", "juwairiyyah sofiyyah binti mahfuz": "160119121452", "muhamad khairil helmi bin kamil": "160509120463", "muhammad airiel syazwan bin mohd faizal": "160702120529", "muhammad attirmizi bin pandekar mukmin": "160111120287", "muhammad mahdi bin rasidi": "160701121263", "muhammad nur azrien bin dapid": "160225121157", "muhammad sali asraf bin salih": "160825120959", "nur farhanim faiqa binti farhan": "160402120586", "nur fazura errina binti mohd arsani": "161208120464", "nur insyirah awfiyah binti zulkefli": "160504120034", "nur radzwa nadirah binti radzaily": "160707120720", "nur sarah munirah binti nazeri": "161119120112", "nuraina qarmilah binti nurhamzal": "161210120316", "nurul amirah natasya binti mohd suhaili": "160726121286", "nurul atirah azlyn binti mohd azmi": "XXBA31501092", "siti nor bahyah binti tabing": "161111120652", "trystan yvander let anak justin": "160609130837", "adam aqib bin abdullah": "150501121737", "ahmad dzakir bin alyamani": "150908121245", "aisyah diyanah binti azumat": "150721120816", "ajwa binti muhammad waris": "151028121380", "ammar uwais bin syairal izmal": "150909120973", "crissella holy joelson": "151001121364", "mohammad azmie bin belna din": "151028120433", "muhamad noor hazim bin mohd khairi": "151219120671", "muhammad afi amzar bin baktiar": "150215120637", "muhammad farhansyah bin muhamadin": "150328120633", "muhammad rayyan danish bin mohd aryan shah g rafael abdullah": "150110120331", "muhammad saidina ali bin harun": "150928121701", "nur aisyah fikriyah binti airul": "150311120848", "nur aisyah humaira binti esmar": "150412120214", "nur aisyah syafiyah binti mohd samsaudin": "150203120322", "nur humaira varisha binti hussein": "150610121074", "nur saidatul saadah binti mohd irwan": "150808121002", "nurdiana aisyah binti abdullah": "150425121582", "nursajwa qadriyyah binti lajarudi": "150511120148", "nurul azrieanie binti dapid": "150308121110", "nurul rania binti abdullah": "14650182", "putri deeana aleesya binti norman": "150315121178", "rizwana najwa binti mohammad rizal": "150314120632", "athilah farzana binti ahmad ardi": "141002120196", "danial haziq bin azumat": "140119120603", "dayang noor faeza binti datu azrin": "140823121044", "mohammad khairil mizan bin m hamizan": "140806121085", "mohammad nor hadi bin amir kahal": "140213120829", "mohammad putra fariezwan bin sharil": "140301120773", "mohammad radzwin bin radzaily": "140213120247", "muhammad aqief rayyan bin mohd dahri": "140630120061", "muhammad daffa huzzari bin sabran": "141225120601", "muhammad khairy bin ahzmin": "140404121381", "muqrie ammar zahwan bin anuar": "141006120097", "musthofa bin mahfuz": "141102121559", "nur ainul mardhiah binti abdul syahrum": "140922121242", "nur aqilah nadirah binti nazeri": "141122120318", "nurain qamariah binti nurhamzal": "140820120038", "nuralisyah binti abdul sani": "141009120850", "siti adriana zulaikah binti abdullah": "140214121700", "siti nasyrah binti mohd laiman": "141007120574", "siti nurdaaniysah faiqah binti muhammad idris": "141107120264"};
+function getStudentIC(name){
+  return studentICMap[String(name||"").trim().replace(/\s+/g," ").toLowerCase()] || "";
+}
+const subjects=["Bahasa Arab", "Bahasa Melayu", "Bahasa Inggeris", "Matematik", "Moral", "Muzik", "Pendidikan Agama Islam", "Pendidikan Jasmani dan Kesihatan", "Pendidikan Seni Visual", "Reka Bentuk dan Teknologi", "Sains", "Sejarah"];
+let students=[];
+const MAX_STUDENTS=35;
+let academicYear=localStorage.getItem('markAppAcademicYear')||'2026';
+let activeClass='';
+
+function grade(pct){
+  const p=Number(pct);
+  if(!isFinite(p)) return ['-','',''];
+  if(p>=82) return ['A','Cemerlang','grade-A'];
+  if(p>=66) return ['B','Kepujian','grade-B'];
+  if(p>=50) return ['C','Baik','grade-C'];
+  if(p>=35) return ['D','Memuaskan','grade-D'];
+  if(p>=20) return ['E','Mencapai Tahap Minimum','grade-E'];
+  return ['F','Belum Mencapai Tahap Minimum','grade-F'];
+}
+
+function max(){
+  return Math.max(1, Number(document.getElementById('maxMark').value)||100);
+}
+
+function init(){
+  const cls=document.getElementById('className');
+  if(cls){
+    cls.innerHTML='';
+    Object.keys(classData).forEach(k=>{
+      const o=document.createElement('option');
+      o.value=k;
+      o.textContent=k;
+      cls.appendChild(o);
+    });
+    if(activeClass && classData[activeClass]) cls.value=activeClass;
+    else if(Object.keys(classData).length) cls.value=Object.keys(classData)[0];
+  }
+
+  const ysel=document.getElementById('academicYear');
+  if(ysel) ysel.value=academicYear;
+
+  loadClass();
+}
+
+function storageKey(){
+  return 'markApp_'+academicYear+'_'+activeClass+'_'+(document.getElementById('testName')?.value||'Ujian');
+}
+
+function changeAcademicYear(){
+  academicYear=document.getElementById('academicYear').value;
+  localStorage.setItem('markAppAcademicYear',academicYear);
+  loadClass();
+}
+
+function loadClass(){
+  const ysel=document.getElementById('academicYear');
+  if(ysel) ysel.value=academicYear;
+
+  const cls=document.getElementById('className');
+  const selected=String(cls?.value||activeClass||'').trim();
+  const keys=Object.keys(classData);
+  const classKey=keys.find(k=>String(k).trim()===selected) || keys[0] || selected;
+  activeClass=classKey;
+
+  if(cls) cls.value=classKey;
+
+  const y=parseInt(String(activeClass).trim(),10);
+  if(document.getElementById('year')) {
+    document.getElementById('year').value=isNaN(y)?'':'Tahun '+y;
+  }
+  if(document.getElementById('yearBadge')){
+    document.getElementById('yearBadge').textContent='Tahun Akademik '+academicYear;
+  }
+
+  const originalNames=Array.isArray(classData[activeClass]) ? classData[activeClass] : [];
+  students=originalNames.map(n=>({
+    name:String(n),
+    marks:Array(subjects.length).fill('')
+  }));
+
+  const loaded=loadSavedRoster();
+  if(!loaded && !students.length){
+    students=[];
+  }
+
+  students=students.filter(s=>s).map(s=>({
+    name:String(s.name||'').trim(),
+    marks:Array.isArray(s.marks) ? s.marks.slice(0,subjects.length).concat(
+      Array(Math.max(0,subjects.length-(Array.isArray(s.marks)?s.marks.length:0))).fill('')
+    ) : Array(subjects.length).fill('')
+  }));
+
+  // Sediakan kapasiti sehingga 35 murid. Ruang kosong boleh diisi dengan
+  // murid baharu tanpa mengubah data murid sedia ada.
+  while(students.length<MAX_STUDENTS){
+    students.push({name:'',marks:Array(subjects.length).fill('')});
+  }
+  if(students.length>MAX_STUDENTS) students=students.slice(0,MAX_STUDENTS);
+
+  loadSavedMarks();
+  render();
+
+  // Jika ada data pusat untuk Tahun + Kelas + Ujian ini, gunakan data pusat.
+  cloudLoadData(false);
+}
+function loadSavedMarks(){
+ try{
+  const raw=localStorage.getItem(storageKey());
+  if(!raw)return;
+  const saved=JSON.parse(raw);
+  students.forEach(s=>{if(saved[s.name])s.marks=saved[s.name];});
+ }catch(e){}
+}
+
+async function saveDataManual(){
+  saveMarks();
+  try{
+    localStorage.setItem('markApp_lastSaved',new Date().toISOString());
+  }catch(e){}
+  // Jangan bina semula data murid/markah; hanya kemas kini paparan yang sedia ada.
+  refreshRankings();
+  await cloudSaveData(true);
+}
+
+function saveMarks(){
+  const obj={};
+  students.forEach(s=>{
+    if(s && String(s.name||'').trim()) obj[String(s.name).trim()]=Array.isArray(s.marks)?s.marks.slice():[];
+  });
+  try{
+    localStorage.setItem(storageKey(),JSON.stringify(obj));
+    saveRoster();
+  }catch(e){}
+}
+function refreshRankings(){
+  const totals=students.map((s,i)=>({
+    i:i,
+    total:s.marks.reduce((sum,x)=>sum+(x!==''&&!isNaN(Number(x))?Number(x):0),0),
+    active:String(s.name||'').trim()!==''
+  }));
+  const sorted=totals.filter(x=>x.active).sort((a,b)=>b.total-a.total || a.i-b.i);
+  const positions={};
+  sorted.forEach((item,index)=>{
+    positions[item.i]=index===0 || item.total!==sorted[index-1].total
+      ? index+1
+      : positions[sorted[index-1].i];
+  });
+
+  const rows=document.getElementById('tbody')?.rows;
+  if(!rows) return;
+  students.forEach((s,i)=>{
+    const row=rows[i];
+    if(!row) return;
+    const positionCell=row.cells[4+subjects.length*2];
+    if(positionCell) positionCell.textContent=String(s.name||'').trim() ? positions[i] : '';
+    const totalCell=row.cells[3+subjects.length*2];
+    if(totalCell) totalCell.textContent=String(s.name||'').trim() ? totals[i].total : '';
+  });
+}
+
+
+function refreshRowAndSummary(i){
+  const tr=document.getElementById('tbody')?.rows[i];
+  const s=students[i];
+  if(!tr || !s) return;
+
+  // 1st cell = name. Each subject has score + grade cells.
+  subjects.forEach((sub,j)=>{
+    const mv=s.marks[j];
+    const pct=(mv!=='' && !isNaN(Number(mv))) ? Number(mv)/max()*100 : null;
+    const g=pct!==null ? grade(pct) : ['','',''];
+    const scoreCell=tr.cells[1+j*2];
+    const gradeCell=tr.cells[2+j*2];
+    if(gradeCell){
+      gradeCell.textContent=g[0]||'-';
+      gradeCell.className=g[2]||'';
+      gradeCell.style.fontWeight='bold';
+      gradeCell.style.fontSize='16px';
+    }
+  });
+
+  const nums=s.marks.filter(x=>x!=='' && !isNaN(Number(x))).map(Number);
+  const avg=nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : 0;
+  const overall=nums.length ? grade(avg/max()*100) : ['-','',''];
+  const total=nums.reduce((a,b)=>a+b,0);
+
+  const avgCell=tr.cells[1+subjects.length*2];
+  const overallCell=tr.cells[2+subjects.length*2];
+  const totalCell=tr.cells[3+subjects.length*2];
+  if(avgCell) avgCell.textContent=nums.length?avg.toFixed(1):'-';
+  if(overallCell){
+    overallCell.textContent=overall[0];
+    overallCell.className=overall[2]||'';
+  }
+  if(totalCell) totalCell.textContent=total;
+
+  // Update summary cards without rebuilding the whole table.
+  const all=[];
+  students.forEach(st=>st.marks.forEach(x=>{
+    if(x!=='' && !isNaN(Number(x))) all.push(Number(x));
+  }));
+  const allAvg=all.length ? all.reduce((a,b)=>a+b,0)/all.length : 0;
+  const avgEl=document.getElementById('avg');
+  const pctEl=document.getElementById('avgPct');
+  const passEl=document.getElementById('pass');
+  const failEl=document.getElementById('fail');
+  if(avgEl) avgEl.textContent=allAvg.toFixed(1);
+  if(pctEl) pctEl.textContent=(all.length?allAvg/max()*100:0).toFixed(1)+'%';
+
+  const pass=students.filter(st=>{
+    const a=st.marks.filter(x=>x!=='' && !isNaN(Number(x))).map(Number);
+    return a.length && (a.reduce((x,y)=>x+y,0)/a.length)/max()*100>=35;
+  }).length;
+  if(passEl) passEl.textContent=pass;
+  if(failEl) failEl.textContent=students.length-pass;
+  refreshRankings();
+}
+
+function updateMark(i,j,v){
+  if(!students[i]) return;
+
+  if(v===''){
+    students[i].marks[j]='';
+  }else{
+    const limit=Math.max(1,Number(document.getElementById('maxMark')?.value)||100);
+    const n=Number(v);
+    const m=Math.max(0,Math.min(limit,n));
+    students[i].marks[j]=isNaN(m)?'':m;
+  }
+
+  // Simpan tanpa membina semula jadual. Ini mengelakkan nama/skor hilang
+  // ketika pengguna baru selesai memasukkan markah.
+  saveMarks();
+  refreshRowAndSummary(i);
+}
+function render(){
+  const thead=document.getElementById('thead');
+  thead.innerHTML =
+    '<tr>' +
+    '<th rowspan="2" style="min-width:220px;position:sticky;left:0;background:#eaf2fb;z-index:3">Nama Murid</th>' +
+    subjects.map(s=>'<th colspan="2" title="'+s+'">'+s+'</th>').join('') +
+    '<th rowspan="2">Purata</th><th rowspan="2">Gred</th>' +
+    '<th rowspan="2" style="background:#fff3cd">Jumlah Keseluruhan</th>' +
+    '<th rowspan="2" style="background:#d1ecf1">Kedudukan</th>' +
+    '<th rowspan="2">Tindakan</th>' +
+    '</tr>' +
+    '<tr>' + subjects.map(()=>'<th>Skor</th><th>Gred</th>').join('') + '</tr>';
+
+  const tb=document.getElementById('tbody');
+  tb.innerHTML='';
+
+  // Jumlah keseluruhan semua mata pelajaran untuk menentukan kedudukan.
+  const totals=students.map((s,i)=>({
+    i:i,
+    total:s.marks.reduce((sum,x)=>sum+(x!==''&&!isNaN(Number(x))?Number(x):0),0),
+    active:String(s.name||'').trim()!==''
+  }));
+  const sortedTotals=totals.filter(x=>x.active).sort((a,b)=>b.total-a.total || a.i-b.i);
+  const positions={};
+  sortedTotals.forEach((item,index)=>{
+    positions[item.i] = index===0 || item.total!==sortedTotals[index-1].total
+      ? index+1
+      : positions[sortedTotals[index-1].i];
+  });
+
+  students.forEach((s,i)=>{
+    const nums=s.marks.filter(x=>x!=='' && !isNaN(Number(x))).map(Number);
+    const avg=nums.length ? nums.reduce((a,b)=>a+b,0)/nums.length : 0;
+    const overall=nums.length ? grade(avg/max()*100) : ['-','',''];
+    const total=totals[i].total;
+
+    let row='<tr>';
+    row+='<td style="text-align:left;font-weight:bold;position:sticky;left:0;background:white;z-index:2;padding:4px"><input type="text" value="'+esc(s.name)+'" aria-label="Nama murid" style="width:100%;min-width:210px;box-sizing:border-box;padding:8px 9px;border:1px solid #8aa4b8;border-radius:6px;font-weight:600;background:#fff" onchange="saveNameDirect('+i+',this.value)" onkeydown="if(event.key===\'Enter\'){this.blur();}"></td>';
+
+    subjects.forEach((sub,j)=>{
+      const mv=s.marks[j];
+      const pct=(mv!=='' && !isNaN(Number(mv))) ? Number(mv)/max()*100 : null;
+      const g=pct!==null ? grade(pct) : ['-','',''];
+
+      row+='<td><input class="mark" type="number" min="0" max="'+max()+'" value="'+mv+
+           '" placeholder="-" onchange="updateMark('+i+','+j+',this.value)"></td>';
+      row+='<td class="'+g[2]+'" style="font-weight:bold;font-size:16px">'+g[0]+'</td>';
+    });
+
+    row+='<td>'+ (nums.length ? avg.toFixed(1) : '-') +'</td>';
+    row+='<td class="'+overall[2]+'">'+overall[0]+'</td>';
+    row+='<td style="font-weight:bold;background:#fffdf0;font-size:16px">'+(s.name.trim()?total:'')+'</td>';
+    row+='<td style="font-weight:bold;background:#eefcff;font-size:17px">'+(s.name.trim()?(positions[i]||'-'):'')+'</td>';
+    row+='<td style="white-space:nowrap">'+(s.name.trim()?'<button class="btn-green" style="width:auto;padding:7px 10px;margin-right:5px" onclick="printSlip('+i+')">🖨 Slip Ujian</button>':'')+'<button class="btn-danger" style="width:auto;padding:7px 10px" onclick="del('+i+')">Padam</button></td>';
+    row+='</tr>';
+    tb.innerHTML+=row;
+  });
+
+  const all=[];
+  students.forEach(s=>s.marks.forEach(x=>{
+    if(x!=='' && !isNaN(Number(x))) all.push(Number(x));
+  }));
+  const avg=all.length ? all.reduce((a,b)=>a+b,0)/all.length : 0;
+  document.getElementById('count').textContent=students.filter(s=>String(s.name||'').trim()!=='').length;
+  const loadedInfo=document.getElementById('loadedInfo');
+  if(loadedInfo) loadedInfo.textContent=' '+students.length+' murid dipaparkan.';
+  document.getElementById('avg').textContent=avg.toFixed(1);
+  document.getElementById('avgPct').textContent=(all.length ? avg/max()*100 : 0).toFixed(1)+'%';
+
+  const activeStudents=students.filter(s=>String(s.name||'').trim()!=='');
+  const pass=activeStudents.filter(s=>{
+    const a=s.marks.filter(x=>x!=='' && !isNaN(Number(x))).map(Number);
+    return a.length && (a.reduce((x,y)=>x+y,0)/a.length)/max()*100>=35;
+  }).length;
+  document.getElementById('pass').textContent=pass;
+  document.getElementById('fail').textContent=activeStudents.length-pass;
+}
+
+function editName(i){
+  if(!students[i]) return;
+  const oldName=students[i].name;
+  const newName=window.prompt('EDIT NAMA MURID', oldName);
+  if(newName===null) return;
+  const name=newName.trim();
+  if(!name){window.alert('Nama murid tidak boleh kosong.');return;}
+  if(name===oldName) return;
+
+  try{
+    const key=storageKey();
+    const raw=localStorage.getItem(key);
+    const data=raw?JSON.parse(raw):{};
+    if(data[oldName]!==undefined){
+      data[name]=data[oldName];
+      delete data[oldName];
+      localStorage.setItem(key,JSON.stringify(data));
+    }
+  }catch(e){}
+
+  students[i].name=name;
+  saveRoster();
+  render();
+}
+
+function saveNameDirect(i,v){
+  if(!students[i]) return;
+  const name=String(v||'').trim();
+  if(!name){ alert('Nama murid tidak boleh kosong.'); render(); return; }
+  const oldName=students[i].name;
+  if(name===oldName) return;
+  try{
+    const key=storageKey(), raw=localStorage.getItem(key), data=raw?JSON.parse(raw):{};
+    if(data[oldName]!==undefined){
+      data[name]=data[oldName];
+      delete data[oldName];
+      localStorage.setItem(key,JSON.stringify(data));
+    }
+  }catch(e){}
+  students[i].name=name;
+  render();
+}
+
+
+function setImportStatus(msg, ok){
+  const el=document.getElementById('importStatus');
+  if(!el) return;
+  el.textContent=msg;
+  el.style.color=ok===false?'#b91c1c':'#166534';
+}
+
+function normalizeClassName(v){
+  return String(v||'').trim().replace(/\s+/g,' ').toUpperCase();
+}
+
+function normalizeHeader(v){
+  return String(v||'').trim().toLowerCase()
+    .replace(/[\s_\-]+/g,' ')
+    .replace(/[^\w\s]/g,'')
+    .trim();
+}
+
+function findColumn(headers, candidates){
+  const hs=headers.map(normalizeHeader);
+  for(const c of candidates){
+    const i=hs.indexOf(normalizeHeader(c));
+    if(i>=0) return i;
+  }
+  return -1;
+}
+
+function downloadImportTemplate(){
+  const csv='\uFEFFNama Murid,Kelas\\nContoh Murid,1 AMANAH\\n';
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='Templat_Import_Senarai_Murid.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+function importStudentList(){
+  const input=document.getElementById('studentImportFile');
+  if(!input || !input.files || !input.files[0]){
+    setImportStatus('Sila pilih fail Excel atau CSV terlebih dahulu.',false);
+    return;
+  }
+  const file=input.files[0];
+  const ext=file.name.toLowerCase().split('.').pop();
+
+  if(ext==='xlsx' || ext==='xls'){
+    if(typeof XLSX==='undefined'){
+      setImportStatus('Modul Excel belum tersedia. Sambungkan internet dan cuba semula.',false);
+      return;
+    }
+    const reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        const wb=XLSX.read(e.target.result,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        processImportedRows(rows,file.name);
+      }catch(err){
+        setImportStatus('Fail Excel tidak dapat dibaca: '+err.message,false);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }else{
+    const reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        const text=String(e.target.result||'').replace(/^\uFEFF/,'');
+        const rows=parseCSVText(text);
+        processImportedRows(rows,file.name);
+      }catch(err){
+        setImportStatus('Fail CSV tidak dapat dibaca: '+err.message,false);
+      }
+    };
+    reader.readAsText(file,'UTF-8');
+  }
+}
+
+function parseCSVText(text){
+  const rows=[];
+  let row=[], field='', quoted=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(quoted){
+      if(ch==='"'){
+        if(text[i+1]==='"'){field+='"';i++;}
+        else quoted=false;
+      }else field+=ch;
+    }else{
+      if(ch==='"') quoted=true;
+      else if(ch===','){row.push(field);field='';}
+      else if(ch==='\n'){
+        row.push(field);field='';
+        if(row.some(x=>String(x).trim()!=='')) rows.push(row);
+        row=[];
+      }else if(ch!=='\r') field+=ch;
+    }
+  }
+  row.push(field);
+  if(row.some(x=>String(x).trim()!=='')) rows.push(row);
+  return rows;
+}
+
+function rosterKey(){
+  return 'markApp_roster_'+academicYear+'_'+activeClass;
+}
+
+function saveRoster(){
+  try{
+    localStorage.setItem(rosterKey(), JSON.stringify(students.map(s=>({name:s.name}))));
+  }catch(e){}
+}
+
+function loadSavedRoster(){
+  try{
+    const raw=localStorage.getItem(rosterKey());
+    if(!raw) return false;
+    const list=JSON.parse(raw);
+    if(!Array.isArray(list) || !list.length) return false;
+
+    const cleaned=list
+      .map(x=>String(x && x.name!==undefined ? x.name : '').trim())
+      .filter(Boolean);
+
+    if(!cleaned.length) return false;
+
+    students=cleaned.map(name=>({
+      name:name,
+      marks:Array(subjects.length).fill('')
+    }));
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+function processImportedRows(rows, fileName){
+  if(!rows || rows.length<1){
+    setImportStatus('Fail tidak mempunyai data yang mencukupi.',false);
+    return;
+  }
+
+  let headerIndex=-1, nameCol=-1, classCol=-1;
+  for(let r=0;r<Math.min(10,rows.length);r++){
+    const headers=rows[r]||[];
+    nameCol=findColumn(headers,['Nama Murid','Nama','Murid','Student Name','Name']);
+    classCol=findColumn(headers,['Kelas','Class','Darjah']);
+    if(nameCol>=0){headerIndex=r;break;}
+  }
+
+  // Sokong fail tanpa tajuk: kolum pertama = nama, kedua = kelas.
+  if(headerIndex<0){
+    headerIndex=-1;
+    nameCol=0;
+    classCol=rows[0].length>1?1:-1;
+  }
+
+  const imported=[];
+  const seen=new Set();
+
+  for(let r=headerIndex+1;r<rows.length;r++){
+    const row=rows[r]||[];
+    const name=String(row[nameCol]??'').trim();
+    const cls=classCol>=0?normalizeClassName(row[classCol]):'';
+    if(!name) continue;
+    const key=name.toLowerCase();
+    if(seen.has(key)) continue;
+    seen.add(key);
+    imported.push({name,cls});
+  }
+
+  if(!imported.length){
+    setImportStatus('Tiada nama murid ditemui dalam fail.',false);
+    return;
+  }
+
+  const selected=normalizeClassName(document.getElementById('className')?.value || activeClass);
+  const withClass=imported.filter(x=>x.cls);
+  let chosen=imported;
+  let filtered=false;
+
+  if(withClass.length){
+    const matches=withClass.filter(x=>x.cls===selected);
+    if(matches.length){
+      chosen=matches;
+      filtered=true;
+    }else{
+      const unique=[...new Set(withClass.map(x=>x.cls))];
+      if(unique.length>1){
+        setImportStatus('Kelas "'+selected+'" tidak ditemui. Kelas dalam fail: '+unique.join(', ')+'. Tiada data diubah.',false);
+        return;
+      }
+    }
+  }
+
+  const oldByName=new Map(students.map(s=>[String(s.name).trim().toLowerCase(),s]));
+  const newStudents=chosen.map(x=>{
+    const old=oldByName.get(x.name.toLowerCase());
+    return old ? {name:x.name,marks:Array.isArray(old.marks)?old.marks.slice():[]} :
+                 {name:x.name,marks:[]};
+  });
+
+  if(!confirm('Import '+newStudents.length+' murid daripada "'+fileName+'"?\\n\\nSenarai murid bagi kelas ini akan diganti. Markah bagi nama yang sama akan dikekalkan.')) return;
+
+  students=newStudents;
+  saveRoster();
+  saveMarks();
+  render();
+
+  setImportStatus('✓ Berjaya: '+newStudents.length+' murid telah diimport'+
+    (filtered?' untuk kelas '+selected:'')+'. Data kini dipaparkan dalam jadual.',true);
+}
+
+
+function resetYearData(){
+  if(!confirm('Padam semua markah yang disimpan untuk Tahun Akademik '+academicYear+'? Nama murid asal akan kekal.')) return;
+  const prefix='markApp_'+academicYear+'_';
+  for(let k=localStorage.length-1;k>=0;k--){
+    const key=localStorage.key(k);
+    if(key && key.indexOf(prefix)===0) localStorage.removeItem(key);
+  }
+  loadClass();
+}
+
+function printSlipNow(){
+  const modal=document.getElementById('slipModal');
+  const paper=document.getElementById('slipPaper');
+  if(!modal || !paper){
+    alert('Sila pilih seorang murid dan buka Slip Ujian terlebih dahulu.');
+    return;
+  }
+
+  // Cetak terus kandungan Slip Ujian yang sedang dipaparkan.
+  // Tidak menggunakan iframe supaya pratonton cetakan tidak menjadi kosong.
+  const oldClass=document.body.className;
+  document.body.classList.add('printing-slip');
+
+  // Pastikan imej logo sudah selesai dimuat sebelum membuka pratonton.
+  const imgs=Array.from(paper.querySelectorAll('img'));
+  const waitForImages=imgs.filter(img=>!img.complete).map(img=>new Promise(resolve=>{
+    img.addEventListener('load',resolve,{once:true});
+    img.addEventListener('error',resolve,{once:true});
+  }));
+
+  Promise.all(waitForImages).then(function(){
+    setTimeout(function(){
+      window.print();
+      setTimeout(function(){
+        document.body.className=oldClass;
+      },500);
+    },150);
+  });
+}
+
+
+function printAllSlips(){
+  const indexes=students
+    .map((st,i)=>({st:st,i:i}))
+    .filter(x=>x.st && String(x.st.name||'').trim()!=='')
+    .map(x=>x.i);
+
+  if(!indexes.length){
+    alert('Tiada murid bernama untuk dicetak.');
+    return;
+  }
+
+  const old=document.getElementById('bulkSlipModal');
+  if(old) old.remove();
+  const oldStyle=document.getElementById('bulkSlipPrintStyle');
+  if(oldStyle) oldStyle.remove();
+
+  // Bina setiap slip satu demi satu menggunakan fungsi Slip Ujian asal.
+  // HTML setiap slip dikumpulkan dahulu sebelum cetakan dimulakan.
+  const pages=[];
+
+  indexes.forEach(function(i){
+    const prev=document.getElementById('slipModal');
+    if(prev) prev.remove();
+
+    printSlip(i);
+
+    const paper=document.querySelector('#slipModal .slip-paper');
+    if(paper){
+      const copy=paper.cloneNode(true);
+      copy.removeAttribute('id');
+      pages.push(copy.outerHTML);
+    }
+
+    const modal=document.getElementById('slipModal');
+    if(modal) modal.remove();
+  });
+
+  if(!pages.length){
+    alert('Slip murid tidak dapat dibina.');
+    return;
+  }
+
+  const bulk=document.createElement('div');
+  bulk.id='bulkSlipModal';
+  bulk.innerHTML=pages.join('');
+  document.body.appendChild(bulk);
+
+  const style=document.createElement('style');
+  style.id='bulkSlipPrintStyle';
+  style.textContent=`
+    @media screen{
+      #bulkSlipModal{display:none!important}
+    }
+    @media print{
+      @page{size:A4 portrait;margin:0!important}
+      html,body{
+        margin:0!important;
+        padding:0!important;
+        background:#fff!important;
+      }
+      body>*:not(#bulkSlipModal){
+        display:none!important;
+      }
+      #bulkSlipModal{
+        display:block!important;
+        width:210mm!important;
+        margin:0!important;
+        padding:0!important;
+      }
+      #bulkSlipModal .slip-paper{
+        display:block!important;
+        visibility:visible!important;
+        box-sizing:border-box!important;
+        width:210mm!important;
+        height:297mm!important;
+        max-width:none!important;
+        margin:0!important;
+        padding:13mm 14mm!important;
+        overflow:hidden!important;
+        border:2px solid #173b72!important;
+        page-break-before:always!important;
+        page-break-after:always!important;
+        break-before:page!important;
+        break-after:page!important;
+      }
+      #bulkSlipModal .slip-paper:first-child{
+        page-break-before:auto!important;
+        break-before:auto!important;
+      }
+      #bulkSlipModal .slip-paper:last-child{
+        page-break-after:auto!important;
+        break-after:auto!important;
+      }
+      #bulkSlipModal .slip-actions{
+        display:none!important;
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  const imgs=Array.from(bulk.querySelectorAll('img'));
+  Promise.all(imgs.map(img=>img.complete ? Promise.resolve() :
+    new Promise(resolve=>{
+      img.onload=resolve;
+      img.onerror=resolve;
+    })
+  )).then(function(){
+    setTimeout(function(){
+      window.print();
+      setTimeout(function(){
+        const b=document.getElementById('bulkSlipModal');
+        const st=document.getElementById('bulkSlipPrintStyle');
+        if(b) b.remove();
+        if(st) st.remove();
+      },1000);
+    },200);
+  });
+}
+
+function printSlip(i){
+  const s=students[i];
+  if(!s || !String(s.name||'').trim()){
+    alert('Sila isi nama murid terlebih dahulu.');
+    return;
+  }
+
+  const fullMark=max();
+
+  // BACA MARKAH TERUS DARIPADA RUANG SKOR MURID YANG SEDANG DIPAPARKAN.
+  // Ini memastikan markah yang kelihatan di jadual masuk ke dalam slip,
+  // walaupun pengguna belum meninggalkan kotak markah.
+  const tableRow=document.getElementById('tbody')?.rows[i];
+  const marks=subjects.map((_,j)=>{
+    const input=tableRow?.cells[1+j*2]?.querySelector('input');
+    const raw=input ? input.value.trim() : (s.marks[j] ?? '');
+    if(raw==='' || isNaN(Number(raw))) return null;
+    return Number(raw);
+  });
+
+  // Simpan markah terkini ke data murid sebelum membina slip.
+  s.marks=marks.map(x=>x===null?'':x);
+  saveMarks();
+
+  const valid=marks.filter(x=>x!==null);
+  const total=valid.reduce((a,b)=>a+b,0);
+  const avg=valid.length ? total/valid.length : 0;
+  const overall=valid.length ? grade(avg/fullMark*100) : ['-','',''];
+
+  const totals=students.map((st,idx)=>{
+    const active=String(st.name||'').trim()!=='';
+    const nums=(st.marks||[]).filter(x=>x!=='' && !isNaN(Number(x))).map(Number);
+    return {i:idx,total:nums.reduce((a,b)=>a+b,0),active};
+  }).filter(x=>x.active);
+
+  totals.sort((a,b)=>b.total-a.total || a.i-b.i);
+  const me=totals.findIndex(x=>x.i===i);
+  let rank='-';
+  if(me>=0){
+    let k=me;
+    while(k>0 && totals[k-1].total===totals[me].total) k--;
+    rank=k+1;
+  }
+
+  const testName=String(document.getElementById('testName')?.value||'').trim() || 'Ujian';
+  const year=String(academicYear||'2026');
+  const className=String(activeClass||document.getElementById('className')?.value||'').trim();
+
+  const rows=subjects.map((sub,j)=>{
+    const mv=marks[j];
+    const pct=mv!==null ? (mv/fullMark*100) : null;
+    const g=pct!==null ? grade(pct) : ['-','',''];
+    return '<tr>'+
+      '<td>'+esc(sub)+'</td>'+
+      '<td class="c">'+(mv!==null?esc(mv):'-')+'</td>'+
+      '<td class="c bold">'+g[0]+'</td>'+
+      '<td>'+g[1]+'</td>'+
+      '</tr>';
+  }).join('');
+
+  let old=document.getElementById('slipModal');
+  if(old) old.remove();
+
+  const modal=document.createElement('div');
+  modal.id='slipModal';
+  modal.innerHTML=`
+    <div class="slip-backdrop">
+      <div class="slip-window">
+        <div class="slip-actions">
+          <button class="btn-green" type="button" onclick="printSlipNow()">🖨 Cetak Slip Murid Ini</button>
+          <button class="btn-gray" type="button" onclick="document.getElementById('slipModal').remove()">✕ Tutup</button>
+        </div>
+        <div class="slip-paper" id="slipPaper">
+          <div class="slip-logo-wrap">
+            <img class="slip-school-logo" src="data:image/jpeg;base64,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" alt="Logo SK Unico Desa">
+          </div>
+          <h1>SK UNICO DESA</h1>
+          <h2>SLIP KEPUTUSAN UJIAN</h2>
+          <div class="slip-meta">
+            <div><b>Tahun Akademik:</b> ${esc(year)}</div>
+            <div><b>Kelas:</b> ${esc(className)}</div>
+            <div><b>Nama Murid:</b> ${esc(s.name)}</div>
+            <div><b>No. Kad Pengenalan:</b> ${esc(getStudentIC(s.name) || "-")}</div>
+            <div><b>Nama Ujian:</b> ${esc(testName)}</div>
+          </div>
+          <table>
+            <thead><tr><th>Mata Pelajaran</th><th>Markah</th><th>Gred</th><th>Prestasi</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <div class="slip-summary">
+            <div>Purata<strong>${valid.length?avg.toFixed(1):'-'}</strong></div>
+            <div>Gred Keseluruhan<strong>${overall[0]}</strong></div>
+            <div>Jumlah Keseluruhan<strong>${total}</strong></div>
+            <div>Kedudukan Dalam Kelas<strong>${rank}</strong></div>
+          </div>
+          <div class="slip-foot">
+            <span>Slip dijana daripada Sistem Pengiraan Markah Ujian</span>
+            <span>Tahun ${esc(year)}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  let oldStyle=document.getElementById('slipPrintStyle');
+  if(oldStyle) oldStyle.remove();
+  const style=document.createElement('style');
+  style.id='slipPrintStyle';
+  style.textContent=`
+    #slipModal{position:fixed;inset:0;z-index:99999}
+    .slip-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);overflow:auto;padding:25px}
+    .slip-window{max-width:900px;margin:auto;background:#fff;border-radius:12px;padding:15px}
+    .slip-actions{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .slip-actions button{width:auto!important;padding:10px 18px!important}
+    .slip-paper{break-inside:avoid;page-break-inside:avoid;max-width:820px;margin:auto;border:2px solid #173b72;padding:28px;color:#172033;background:#fff}
+    .slip-logo-wrap{text-align:center;margin:0 0 8px}
+    .slip-school-logo{width:78px;height:78px;object-fit:contain;display:inline-block}
+    .slip-paper h1{text-align:center;margin:0 0 5px;font-size:24px}
+    .slip-paper h2{text-align:center;margin:0 0 20px;font-size:18px}
+    .slip-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 25px;margin-bottom:18px}
+    .slip-meta div{padding:7px 0;border-bottom:1px solid #ddd}
+    .slip-paper table{width:100%!important;min-width:0!important;max-width:100%!important;border-collapse:collapse;margin-top:12px;table-layout:fixed}
+    .slip-paper th,.slip-paper td{border:1px solid #aaa;padding:8px;overflow-wrap:anywhere}.slip-paper th:nth-child(1),.slip-paper td:nth-child(1){width:50%}.slip-paper th:nth-child(2),.slip-paper td:nth-child(2){width:15%}.slip-paper th:nth-child(3),.slip-paper td:nth-child(3){width:10%}.slip-paper th:nth-child(4),.slip-paper td:nth-child(4){width:25%}
+    .slip-paper th{background:#eaf2fb;text-align:left}
+    .slip-paper .c{text-align:center}.slip-paper .bold{font-weight:bold}
+    .slip-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px}
+    .slip-summary div{border:1px solid #bbb;padding:12px;text-align:center;border-radius:6px}
+    .slip-summary strong{display:block;font-size:20px;margin-top:5px}
+    .slip-foot{margin-top:30px;display:flex;justify-content:space-between;font-size:13px}
+    @media print{
+    html,body{
+      display:block!important;
+      width:210mm!important;
+      height:297mm!important;
+      min-width:0!important;
+      min-height:0!important;
+      max-width:none!important;
+      max-height:none!important;
+      margin:0!important;
+      padding:0!important;
+      overflow:hidden!important;
+      background:#fff!important;
+    }
+
+    body.printing-slip > *{
+      display:none!important;
+      visibility:hidden!important;
+    }
+
+    body.printing-slip > #slipModal{
+      display:block!important;
+      visibility:visible!important;
+      position:static!important;
+      width:210mm!important;
+      height:297mm!important;
+      margin:0!important;
+      padding:0!important;
+      overflow:hidden!important;
+      background:#fff!important;
+    }
+
+    body.printing-slip #slipModal,
+    body.printing-slip #slipModal *{
+      visibility:visible!important;
+    }
+
+    body.printing-slip .slip-backdrop{
+      display:block!important;
+      position:static!important;
+      width:210mm!important;
+      height:297mm!important;
+      margin:0!important;
+      padding:0!important;
+      overflow:hidden!important;
+      background:#fff!important;
+    }
+
+    body.printing-slip .slip-window{
+      display:block!important;
+      width:210mm!important;
+      height:297mm!important;
+      max-width:none!important;
+      margin:0!important;
+      padding:0!important;
+      overflow:hidden!important;
+      background:#fff!important;
+    }
+
+    body.printing-slip .slip-actions{
+      display:none!important;
+      visibility:hidden!important;
+    }
+
+    /* Guna ruang A4 dengan lebih penuh dan mudah dibaca. */
+    body.printing-slip .slip-paper{
+      display:block!important;
+      visibility:visible!important;
+      box-sizing:border-box!important;
+      width:210mm!important;
+      height:297mm!important;
+      max-width:none!important;
+      max-height:none!important;
+      min-width:0!important;
+      min-height:0!important;
+      margin:0!important;
+      padding:13mm 14mm!important;
+      overflow:hidden!important;
+      border:2px solid #173b72!important;
+      border-radius:0!important;
+      box-shadow:none!important;
+      background:#fff!important;
+      font-size:13px!important;
+      line-height:1.3!important;
+      break-after:avoid!important;
+      page-break-after:avoid!important;
+      break-inside:avoid!important;
+      page-break-inside:avoid!important;
+    }
+
+    body.printing-slip .slip-logo-wrap{
+      margin:0 0 7px!important;
+      height:62px!important;
+    }
+
+    body.printing-slip .slip-school-logo{
+      width:62px!important;
+      height:62px!important;
+      display:inline-block!important;
+      visibility:visible!important;
+    }
+
+    body.printing-slip .slip-paper h1{
+      margin:0 0 5px!important;
+      font-size:25px!important;
+      line-height:1.1!important;
+    }
+
+    body.printing-slip .slip-paper h2{
+      margin:0 0 14px!important;
+      font-size:18px!important;
+      line-height:1.1!important;
+    }
+
+    body.printing-slip .slip-meta{
+      grid-template-columns:1fr 1fr!important;
+      gap:6px 22px!important;
+      margin-bottom:13px!important;
+      font-size:13px!important;
+    }
+
+    body.printing-slip .slip-meta div{
+      padding:6px 0!important;
+    }
+
+    body.printing-slip .slip-paper table{
+      display:table!important;
+      width:100%!important;
+      min-width:0!important;
+      max-width:100%!important;
+      table-layout:fixed!important;
+      border-collapse:collapse!important;
+      margin-top:7px!important;
+      font-size:12.5px!important;
+    }
+
+    body.printing-slip .slip-paper th,
+    body.printing-slip .slip-paper td{
+      padding:7px 8px!important;
+      line-height:1.15!important;
+    }
+
+    body.printing-slip .slip-summary{
+      grid-template-columns:repeat(4,1fr)!important;
+      gap:8px!important;
+      margin-top:13px!important;
+    }
+
+    body.printing-slip .slip-summary div{
+      padding:9px 6px!important;
+      min-height:45px!important;
+    }
+
+    body.printing-slip .slip-summary strong{
+      font-size:18px!important;
+      margin-top:4px!important;
+    }
+
+    body.printing-slip .slip-foot{
+      margin-top:16px!important;
+      font-size:10.5px!important;
+    }
+
+    @page{
+      size:A4 portrait;
+      margin:0!important;
+    }
+  }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(modal);
+}
+
+
+
+
+function del(i){students.splice(i,1);saveMarks();render();}
+
+function sortName(){students.sort((a,b)=>a.name.localeCompare(b.name,'ms'));saveMarks();render();}
+function clearMarks(){if(confirm('Kosongkan semua markah bagi kelas ini untuk ujian/mata pelajaran semasa?')){students.forEach(s=>s.marks=Array(subjects.length).fill(''));saveMarks();render();}}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+
+function exportCSV(){
+ const rows=[['Tahun Akademik','Tahun','Kelas','Nama Ujian','Markah Penuh','Nama Murid',...subjects,'Purata','Gred']];
+ const max=Number(document.getElementById('maxMark').value)||100;
+ students.forEach(s=>{
+  const nums=s.marks.filter(x=>x!=='').map(Number);const avg=nums.length?nums.reduce((a,b)=>a+b,0)/nums.length:0;
+  const total=s.marks.reduce((sum,x)=>sum+(x!==''&&!isNaN(Number(x))?Number(x):0),0);
+  const ranking=[...students].map((st,idx)=>({idx,total:st.marks.reduce((sum,x)=>sum+(x!==''&&!isNaN(Number(x))?Number(x):0),0)})).sort((a,b)=>b.total-a.total);
+  const rankIndex=ranking.findIndex(x=>x.idx===students.indexOf(s));
+  const rank=rankIndex>=0?rankIndex+1:'';
+  rows.push([document.getElementById('year').value,activeClass,document.getElementById('testName').value,max,s.name,...s.marks,nums.length?avg.toFixed(1):'',nums.length?grade(avg/max*100)[0]:'',total,rank]);
+ });
+ const csv=rows.map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\n');
+ const blob=new Blob(["\ufeff"+csv],{type:'text/csv;charset=utf-8'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Markah_'+activeClass+'.csv';a.click();
+}
+
+document.getElementById('maxMark').addEventListener('change',render);
+document.getElementById('testName').addEventListener('change',function(){
+  loadSavedMarks();
+  cloudLoadData(false);
+});
+init();
+</script>
+</body>
+</html>
