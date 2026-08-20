@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SK Unico Desa - Pencerapan 2026</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eef2f7;font-family:Arial,sans-serif;color:#172033}
+.container{max-width:1500px;margin:auto;padding:12px}
+.card{background:#fff;border-radius:12px;padding:14px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+h1{font-size:21px;text-align:center;margin:2px 0 5px}
+h2{font-size:15px;text-align:center;font-weight:normal;color:#555;margin:0 0 14px}
+h3{font-size:17px;margin:0 0 10px;color:#164e63}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px}
+button{border:0;border-radius:7px;padding:9px 12px;font-weight:bold;color:white;cursor:pointer}
+.save{background:#059669} .print{background:#2563eb} .clear{background:#6b7280}
+.table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid #cbd5e1;border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:1000px}
+th,td{border:1px solid #cbd5e1;padding:6px;text-align:center;vertical-align:middle}
+th{background:#1e3a8a;color:#fff;font-size:12px;white-space:nowrap}
+th.group{background:#0f766e}
+td.name{text-align:left;min-width:315px;font-weight:600;font-size:12px}
+td:first-child{width:42px}
+input{font:inherit}
+input[type=date]{width:135px;min-width:135px;padding:7px;border:1px solid #94a3b8;border-radius:6px;background:#fff}
+input[type=number]{width:85px;padding:7px;border:1px solid #94a3b8;border-radius:6px;text-align:center}
+.auto{font-weight:bold;background:#f8fafc;min-width:75px}
+.note{font-size:12px;color:#64748b;margin-bottom:9px}
+.badge{display:inline-block;background:#e0f2fe;color:#075985;padding:4px 7px;border-radius:6px;font-size:11px;font-weight:bold}
+@media(max-width:600px){
+ .container{padding:7px} .card{padding:10px} h1{font-size:18px} h2{font-size:13px}
+ table{min-width:950px} .actions button{font-size:12px;padding:8px 10px}
+}
+@media print{
+ body{background:#fff} .container{max-width:none;padding:0} .card{box-shadow:none;padding:0;margin-bottom:12px;page-break-inside:avoid}
+ .actions,.note{display:none} table{min-width:0;font-size:9px} th,td{padding:4px} 
+ input{border:0;background:transparent} @page{size:A4 landscape;margin:7mm}
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="card">
+<h1>JADUAL PENCERAPAN GURU</h1>
+<h2>SK UNICO DESA, LAHAD DATU, SABAH — TAHUN 2026</h2>
+<div class="actions">
+<button class="print" onclick="window.print()">🖨️ Cetak / PDF</button>
+<button class="save" onclick="saveData()">💾 Simpan</button>
+<button class="clear" onclick="clearData()">↺ Kosongkan</button>
+</div>
+</div>
+
+<div class="card">
+<h3>① Jadual Tarikh Pencerapan & ISPPK/KBAT</h3>
+<div class="note"><span class="badge">KLIK TARIKH</span> Setiap ruangan tarikh mempunyai kalendar digital. Jadual ini hanya untuk tarikh, tanpa skor.</div>
+<div class="table-scroll">
+<table>
+<thead>
+<tr>
+<th rowspan="2">Bil.</th><th rowspan="2">Nama Guru</th>
+<th colspan="3" class="group">PENCERAPAN</th>
+<th colspan="2" class="group">ISPPK / KBAT</th>
+</tr>
+<tr><th>Kendiri</th><th>Pertama</th><th>Kedua</th><th>Kendiri</th><th>Pertama</th></tr>
+</thead>
+<tbody>
+    <tr>
+      <td>1</td><td class="name">HJ ABDUL MUTALIB BIN HJ APDAL (GURU BESAR)</td>
+      <td><input type="date" data-key="pk1"></td>
+      <td><input type="date" data-key="pp11"></td>
+      <td><input type="date" data-key="pp21"></td>
+      <td><input type="date" data-key="ik1"></td>
+      <td><input type="date" data-key="ip1"></td>
+    </tr>
+    <tr>
+      <td>2</td><td class="name">NASRUN BIN BAHAR (PK PENTADBIRAN)</td>
+      <td><input type="date" data-key="pk2"></td>
+      <td><input type="date" data-key="pp12"></td>
+      <td><input type="date" data-key="pp22"></td>
+      <td><input type="date" data-key="ik2"></td>
+      <td><input type="date" data-key="ip2"></td>
+    </tr>
+    <tr>
+      <td>3</td><td class="name">NURATIKHA @ HELEN NGINDANG (PK HEM)</td>
+      <td><input type="date" data-key="pk3"></td>
+      <td><input type="date" data-key="pp13"></td>
+      <td><input type="date" data-key="pp23"></td>
+      <td><input type="date" data-key="ik3"></td>
+      <td><input type="date" data-key="ip3"></td>
+    </tr>
+    <tr>
+      <td>4</td><td class="name">JUMRIANI ANDI SIKANDAR (PK KOKURIKULUM)</td>
+      <td><input type="date" data-key="pk4"></td>
+      <td><input type="date" data-key="pp14"></td>
+      <td><input type="date" data-key="pp24"></td>
+      <td><input type="date" data-key="ik4"></td>
+      <td><input type="date" data-key="ip4"></td>
+    </tr>
+    <tr>
+      <td>5</td><td class="name">NOOR AINI BINTI HUSSIN</td>
+      <td><input type="date" data-key="pk5"></td>
+      <td><input type="date" data-key="pp15"></td>
+      <td><input type="date" data-key="pp25"></td>
+      <td><input type="date" data-key="ik5"></td>
+      <td><input type="date" data-key="ip5"></td>
+    </tr>
+    <tr>
+      <td>6</td><td class="name">OSMAN BIN LAUPE</td>
+      <td><input type="date" data-key="pk6"></td>
+      <td><input type="date" data-key="pp16"></td>
+      <td><input type="date" data-key="pp26"></td>
+      <td><input type="date" data-key="ik6"></td>
+      <td><input type="date" data-key="ip6"></td>
+    </tr>
+    <tr>
+      <td>7</td><td class="name">SELIHIN BIN INDANAN</td>
+      <td><input type="date" data-key="pk7"></td>
+      <td><input type="date" data-key="pp17"></td>
+      <td><input type="date" data-key="pp27"></td>
+      <td><input type="date" data-key="ik7"></td>
+      <td><input type="date" data-key="ip7"></td>
+    </tr>
+    <tr>
+      <td>8</td><td class="name">JUMAIDAH BINTI JUNA</td>
+      <td><input type="date" data-key="pk8"></td>
+      <td><input type="date" data-key="pp18"></td>
+      <td><input type="date" data-key="pp28"></td>
+      <td><input type="date" data-key="ik8"></td>
+      <td><input type="date" data-key="ip8"></td>
+    </tr>
+    <tr>
+      <td>9</td><td class="name">NURUL ASYIKIN BINTI PADDALAN@RAHIM</td>
+      <td><input type="date" data-key="pk9"></td>
+      <td><input type="date" data-key="pp19"></td>
+      <td><input type="date" data-key="pp29"></td>
+      <td><input type="date" data-key="ik9"></td>
+      <td><input type="date" data-key="ip9"></td>
+    </tr>
+    <tr>
+      <td>10</td><td class="name">AISHAH @ AISAH BINTI OMAR</td>
+      <td><input type="date" data-key="pk10"></td>
+      <td><input type="date" data-key="pp110"></td>
+      <td><input type="date" data-key="pp210"></td>
+      <td><input type="date" data-key="ik10"></td>
+      <td><input type="date" data-key="ip10"></td>
+    </tr>
+    <tr>
+      <td>11</td><td class="name">NOORZIANA BINTI ASGALI</td>
+      <td><input type="date" data-key="pk11"></td>
+      <td><input type="date" data-key="pp111"></td>
+      <td><input type="date" data-key="pp211"></td>
+      <td><input type="date" data-key="ik11"></td>
+      <td><input type="date" data-key="ip11"></td>
+    </tr>
+    <tr>
+      <td>12</td><td class="name">NUR ZAHIRAH BINTI ABD. SAMAD</td>
+      <td><input type="date" data-key="pk12"></td>
+      <td><input type="date" data-key="pp112"></td>
+      <td><input type="date" data-key="pp212"></td>
+      <td><input type="date" data-key="ik12"></td>
+      <td><input type="date" data-key="ip12"></td>
+    </tr>
+    <tr>
+      <td>13</td><td class="name">SITI FATIMAH BINTI ABDUL RAHIM</td>
+      <td><input type="date" data-key="pk13"></td>
+      <td><input type="date" data-key="pp113"></td>
+      <td><input type="date" data-key="pp213"></td>
+      <td><input type="date" data-key="ik13"></td>
+      <td><input type="date" data-key="ip13"></td>
+    </tr>
+    <tr>
+      <td>14</td><td class="name">AINA HAZLIN BINTI NASRUDDIN</td>
+      <td><input type="date" data-key="pk14"></td>
+      <td><input type="date" data-key="pp114"></td>
+      <td><input type="date" data-key="pp214"></td>
+      <td><input type="date" data-key="ik14"></td>
+      <td><input type="date" data-key="ip14"></td>
+    </tr>
+    <tr>
+      <td>15</td><td class="name">FITREN BINTI ANAM</td>
+      <td><input type="date" data-key="pk15"></td>
+      <td><input type="date" data-key="pp115"></td>
+      <td><input type="date" data-key="pp215"></td>
+      <td><input type="date" data-key="ik15"></td>
+      <td><input type="date" data-key="ip15"></td>
+    </tr></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h3>② Rumusan Skor Pencerapan</h3>
+<div class="note">Masukkan skor 0–100. <b>Purata</b> dan <b>Jumlah</b> dikira secara automatik berdasarkan skor yang telah diisi.</div>
+<div class="table-scroll">
+<table>
+<thead>
+<tr><th>Bil.</th><th>Nama Guru</th><th>Kendiri</th><th>Pertama</th><th>Kedua</th><th>Purata</th><th>Jumlah</th></tr>
+</thead>
+<tbody>
+    <tr>
+      <td>1</td><td class="name">HJ ABDUL MUTALIB BIN HJ APDAL (GURU BESAR)</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk1"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s11"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s21"></td>
+      <td class="auto" id="avg1">—</td>
+      <td class="auto" id="sum1">—</td>
+    </tr>
+    <tr>
+      <td>2</td><td class="name">NASRUN BIN BAHAR (PK PENTADBIRAN)</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk2"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s12"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s22"></td>
+      <td class="auto" id="avg2">—</td>
+      <td class="auto" id="sum2">—</td>
+    </tr>
+    <tr>
+      <td>3</td><td class="name">NURATIKHA @ HELEN NGINDANG (PK HEM)</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk3"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s13"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s23"></td>
+      <td class="auto" id="avg3">—</td>
+      <td class="auto" id="sum3">—</td>
+    </tr>
+    <tr>
+      <td>4</td><td class="name">JUMRIANI ANDI SIKANDAR (PK KOKURIKULUM)</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk4"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s14"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s24"></td>
+      <td class="auto" id="avg4">—</td>
+      <td class="auto" id="sum4">—</td>
+    </tr>
+    <tr>
+      <td>5</td><td class="name">NOOR AINI BINTI HUSSIN</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk5"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s15"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s25"></td>
+      <td class="auto" id="avg5">—</td>
+      <td class="auto" id="sum5">—</td>
+    </tr>
+    <tr>
+      <td>6</td><td class="name">OSMAN BIN LAUPE</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk6"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s16"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s26"></td>
+      <td class="auto" id="avg6">—</td>
+      <td class="auto" id="sum6">—</td>
+    </tr>
+    <tr>
+      <td>7</td><td class="name">SELIHIN BIN INDANAN</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk7"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s17"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s27"></td>
+      <td class="auto" id="avg7">—</td>
+      <td class="auto" id="sum7">—</td>
+    </tr>
+    <tr>
+      <td>8</td><td class="name">JUMAIDAH BINTI JUNA</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk8"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s18"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s28"></td>
+      <td class="auto" id="avg8">—</td>
+      <td class="auto" id="sum8">—</td>
+    </tr>
+    <tr>
+      <td>9</td><td class="name">NURUL ASYIKIN BINTI PADDALAN@RAHIM</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk9"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s19"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s29"></td>
+      <td class="auto" id="avg9">—</td>
+      <td class="auto" id="sum9">—</td>
+    </tr>
+    <tr>
+      <td>10</td><td class="name">AISHAH @ AISAH BINTI OMAR</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk10"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s110"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s210"></td>
+      <td class="auto" id="avg10">—</td>
+      <td class="auto" id="sum10">—</td>
+    </tr>
+    <tr>
+      <td>11</td><td class="name">NOORZIANA BINTI ASGALI</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk11"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s111"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s211"></td>
+      <td class="auto" id="avg11">—</td>
+      <td class="auto" id="sum11">—</td>
+    </tr>
+    <tr>
+      <td>12</td><td class="name">NUR ZAHIRAH BINTI ABD. SAMAD</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk12"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s112"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s212"></td>
+      <td class="auto" id="avg12">—</td>
+      <td class="auto" id="sum12">—</td>
+    </tr>
+    <tr>
+      <td>13</td><td class="name">SITI FATIMAH BINTI ABDUL RAHIM</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk13"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s113"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s213"></td>
+      <td class="auto" id="avg13">—</td>
+      <td class="auto" id="sum13">—</td>
+    </tr>
+    <tr>
+      <td>14</td><td class="name">AINA HAZLIN BINTI NASRUDDIN</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk14"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s114"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s214"></td>
+      <td class="auto" id="avg14">—</td>
+      <td class="auto" id="sum14">—</td>
+    </tr>
+    <tr>
+      <td>15</td><td class="name">FITREN BINTI ANAM</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="sk15"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s115"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="s215"></td>
+      <td class="auto" id="avg15">—</td>
+      <td class="auto" id="sum15">—</td>
+    </tr></tbody>
+</table>
+</div>
+</div>
+
+<div class="card">
+<h3>③ Rumusan Skor ISPPK / KBAT</h3>
+<div class="note">Skor <b>Guru</b> dan <b>Murid</b> direkodkan secara berasingan untuk Kendiri dan Pertama.</div>
+<div class="table-scroll">
+<table>
+<thead>
+<tr>
+<th rowspan="2">Bil.</th><th rowspan="2">Nama Guru</th>
+<th colspan="2" class="group">Kendiri</th>
+<th colspan="2" class="group">Pertama</th>
+<th rowspan="2">Purata Guru</th><th rowspan="2">Purata Murid</th>
+</tr>
+<tr><th>Guru</th><th>Murid</th><th>Guru</th><th>Murid</th></tr>
+</thead>
+<tbody>
+    <tr>
+      <td>1</td><td class="name">HJ ABDUL MUTALIB BIN HJ APDAL (GURU BESAR)</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk1"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk1"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g11"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m11"></td>
+      <td class="auto" id="gavg1">—</td>
+      <td class="auto" id="mavg1">—</td>
+    </tr>
+    <tr>
+      <td>2</td><td class="name">NASRUN BIN BAHAR (PK PENTADBIRAN)</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk2"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk2"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g12"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m12"></td>
+      <td class="auto" id="gavg2">—</td>
+      <td class="auto" id="mavg2">—</td>
+    </tr>
+    <tr>
+      <td>3</td><td class="name">NURATIKHA @ HELEN NGINDANG (PK HEM)</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk3"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk3"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g13"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m13"></td>
+      <td class="auto" id="gavg3">—</td>
+      <td class="auto" id="mavg3">—</td>
+    </tr>
+    <tr>
+      <td>4</td><td class="name">JUMRIANI ANDI SIKANDAR (PK KOKURIKULUM)</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk4"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk4"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g14"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m14"></td>
+      <td class="auto" id="gavg4">—</td>
+      <td class="auto" id="mavg4">—</td>
+    </tr>
+    <tr>
+      <td>5</td><td class="name">NOOR AINI BINTI HUSSIN</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk5"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk5"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g15"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m15"></td>
+      <td class="auto" id="gavg5">—</td>
+      <td class="auto" id="mavg5">—</td>
+    </tr>
+    <tr>
+      <td>6</td><td class="name">OSMAN BIN LAUPE</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk6"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk6"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g16"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m16"></td>
+      <td class="auto" id="gavg6">—</td>
+      <td class="auto" id="mavg6">—</td>
+    </tr>
+    <tr>
+      <td>7</td><td class="name">SELIHIN BIN INDANAN</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk7"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk7"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g17"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m17"></td>
+      <td class="auto" id="gavg7">—</td>
+      <td class="auto" id="mavg7">—</td>
+    </tr>
+    <tr>
+      <td>8</td><td class="name">JUMAIDAH BINTI JUNA</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk8"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk8"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g18"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m18"></td>
+      <td class="auto" id="gavg8">—</td>
+      <td class="auto" id="mavg8">—</td>
+    </tr>
+    <tr>
+      <td>9</td><td class="name">NURUL ASYIKIN BINTI PADDALAN@RAHIM</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk9"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk9"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g19"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m19"></td>
+      <td class="auto" id="gavg9">—</td>
+      <td class="auto" id="mavg9">—</td>
+    </tr>
+    <tr>
+      <td>10</td><td class="name">AISHAH @ AISAH BINTI OMAR</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk10"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk10"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g110"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m110"></td>
+      <td class="auto" id="gavg10">—</td>
+      <td class="auto" id="mavg10">—</td>
+    </tr>
+    <tr>
+      <td>11</td><td class="name">NOORZIANA BINTI ASGALI</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk11"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk11"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g111"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m111"></td>
+      <td class="auto" id="gavg11">—</td>
+      <td class="auto" id="mavg11">—</td>
+    </tr>
+    <tr>
+      <td>12</td><td class="name">NUR ZAHIRAH BINTI ABD. SAMAD</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk12"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk12"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g112"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m112"></td>
+      <td class="auto" id="gavg12">—</td>
+      <td class="auto" id="mavg12">—</td>
+    </tr>
+    <tr>
+      <td>13</td><td class="name">SITI FATIMAH BINTI ABDUL RAHIM</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk13"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk13"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g113"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m113"></td>
+      <td class="auto" id="gavg13">—</td>
+      <td class="auto" id="mavg13">—</td>
+    </tr>
+    <tr>
+      <td>14</td><td class="name">AINA HAZLIN BINTI NASRUDDIN</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk14"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk14"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g114"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m114"></td>
+      <td class="auto" id="gavg14">—</td>
+      <td class="auto" id="mavg14">—</td>
+    </tr>
+    <tr>
+      <td>15</td><td class="name">FITREN BINTI ANAM</td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="gk15"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="mk15"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="g115"></td>
+      <td><input type="number" min="0" max="100" step="0.1" data-key="m115"></td>
+      <td class="auto" id="gavg15">—</td>
+      <td class="auto" id="mavg15">—</td>
+    </tr></tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+<script>
+const STORE='sk_unico_pencerapan_2026_final';
+
+function fields(){
+  return Array.from(document.querySelectorAll('[data-key]'));
+}
+
+function getv(key){
+  const el=document.querySelector('[data-key="'+key+'"]');
+  return el ? el.value : '';
+}
+
+function recalc(){
+  for(let i=1;i<=15;i++){
+    const scores=['sk'+i,'s1'+i,'s2'+i]
+      .map(getv).filter(v=>v!=='' && !isNaN(Number(v))).map(Number);
+    const total=scores.reduce((a,b)=>a+b,0);
+    document.getElementById('sum'+i).textContent=scores.length ? total.toFixed(1) : '—';
+    document.getElementById('avg'+i).textContent=scores.length ? (total/scores.length).toFixed(1) : '—';
+
+    const gs=['gk'+i,'g1'+i].map(getv).filter(v=>v!=='' && !isNaN(Number(v))).map(Number);
+    const ms=['mk'+i,'m1'+i].map(getv).filter(v=>v!=='' && !isNaN(Number(v))).map(Number);
+    document.getElementById('gavg'+i).textContent=gs.length ? (gs.reduce((a,b)=>a+b,0)/gs.length).toFixed(1) : '—';
+    document.getElementById('mavg'+i).textContent=ms.length ? (ms.reduce((a,b)=>a+b,0)/ms.length).toFixed(1) : '—';
+  }
+}
+
+function saveData(){
+  const data={};
+  fields().forEach(el=>data[el.dataset.key]=el.value);
+  localStorage.setItem(STORE,JSON.stringify(data));
+  alert('Data berjaya disimpan.');
+}
+
+function loadData(){
+  try{
+    const data=JSON.parse(localStorage.getItem(STORE)||'{}');
+    fields().forEach(el=>{
+      if(Object.prototype.hasOwnProperty.call(data,el.dataset.key)) el.value=data[el.dataset.key];
+    });
+  }catch(e){}
+  recalc();
+}
+
+function clearData(){
+  if(confirm('Kosongkan semua tarikh dan skor?')){
+    fields().forEach(el=>el.value='');
+    localStorage.removeItem(STORE);
+    recalc();
+  }
+}
+
+fields().forEach(el=>el.addEventListener('input',()=>{
+  const data={};
+  fields().forEach(x=>data[x.dataset.key]=x.value);
+  localStorage.setItem(STORE,JSON.stringify(data));
+  recalc();
+}));
+
+loadData();
+</script>
+</body>
+</html>
